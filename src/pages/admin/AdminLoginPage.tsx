@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Link, useNavigate, useLocation } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { Mail, Lock, Eye, EyeOff, ArrowRight, ShieldCheck } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { useToast } from '@/context/ToastContext';
@@ -8,8 +8,7 @@ export default function AdminLoginPage() {
   const { signIn } = useAuth();
   const { show } = useToast();
   const navigate = useNavigate();
-  const location = useLocation();
-  const [email, setEmail] = useState('admin@shopverse.com');
+  const [email, setEmail] = useState('admin@cstyle.com');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);

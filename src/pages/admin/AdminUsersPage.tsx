@@ -1,19 +1,20 @@
 import { useEffect, useState } from 'react';
-import { Search, Users, Mail, ShieldCheck } from 'lucide-react';
+import { Search, Users, ShieldCheck } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
+import type { Profile } from '@/types';
 import { formatDate } from '@/utils/format';
 import AdminLayout from '@/components/layout/AdminLayout';
 import LoadingSpinner from '@/components/common/LoadingSpinner';
 import EmptyState from '@/components/common/EmptyState';
 
 export default function AdminUsersPage() {
-  const [users, setUsers] = useState<any[]>([]);
+  const [users, setUsers] = useState<Profile[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
 
   useEffect(() => {
     supabase.from('profiles').select('*').order('created_at', { ascending: false })
-      .then(({ data }) => { setUsers(data ?? []); setLoading(false); });
+      .then(({ data }) => { setUsers((data as Profile[]) ?? []); setLoading(false); });
   }, []);
 
   const filtered = users.filter((u) =>

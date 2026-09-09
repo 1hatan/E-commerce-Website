@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Plus, Edit2, Trash2, Search, X, Package } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
@@ -26,18 +26,18 @@ export default function AdminProductsPage() {
   const [saving, setSaving] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState<string | null>(null);
 
-  const fetchProducts = async () => {
+  const fetchProducts = useCallback(async () => {
     let q = supabase.from('products').select('*, category:categories(*)').order('created_at', { ascending: false });
     if (search) q = q.or(`name.ilike.%${search}%,brand.ilike.%${search}%`);
     const { data } = await q;
     setProducts((data as Product[]) ?? []);
     setLoading(false);
-  };
+  }, [search]);
 
   useEffect(() => {
     supabase.from('categories').select('*').order('name').then(({ data }) => setCategories((data as Category[]) ?? []));
     fetchProducts();
-  }, []);
+  }, [fetchProducts]);
 
   const handleEdit = (product: Product) => {
     setEditingId(product.id);

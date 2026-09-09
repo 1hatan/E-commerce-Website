@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Plus, Trash2, Edit2, X, Check, MapPin } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { useToast } from '@/context/ToastContext';
@@ -18,15 +18,16 @@ export default function AddressesPage() {
     full_name: '', phone: '', address_line1: '', address_line2: '', city: '', state: '', postal_code: '', country: 'India', is_default: false,
   });
 
-  useEffect(() => {
-    const fetchAddresses = async () => {
-      if (!user) return;
-      const { data } = await supabase.from('addresses').select('*').eq('user_id', user.id).order('created_at', { ascending: false });
-      setAddresses((data as Address[]) ?? []);
-      setLoading(false);
-    };
-    fetchAddresses();
+  const fetchAddresses = useCallback(async () => {
+    if (!user) return;
+    const { data } = await supabase.from('addresses').select('*').eq('user_id', user.id).order('created_at', { ascending: false });
+    setAddresses((data as Address[]) ?? []);
+    setLoading(false);
   }, [user]);
+
+  useEffect(() => {
+    fetchAddresses();
+  }, [fetchAddresses]);
 
   const resetForm = () => {
     setForm({ full_name: '', phone: '', address_line1: '', address_line2: '', city: '', state: '', postal_code: '', country: 'India', is_default: false });

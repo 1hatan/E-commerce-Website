@@ -199,7 +199,6 @@ export default function ShopPage() {
   const [sortOpen, setSortOpen] = useState(false);
   const [page, setPage] = useState(1);
 
-  const searchParamsString = searchParams.toString();
   const query = searchParams.get('q') ?? '';
   const categorySlug = searchParams.get('category') ?? '';
   const sortBy = searchParams.get('sort') ?? 'featured';
@@ -342,7 +341,7 @@ export default function ShopPage() {
       setLoading(false);
       setPage(1);
     }
-  }, [searchParamsString, query, categorySlug, sortBy, selectedBrands, selectedColors, selectedSizes, selectedRating, selectedPriceRanges]);
+  }, [query, categorySlug, sortBy, selectedBrands, selectedColors, selectedSizes, selectedRating, selectedPriceRanges]);
 
   useEffect(() => {
     fetchProducts();

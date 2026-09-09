@@ -23,7 +23,7 @@ export default function LoginPage() {
       show(error, 'error');
     } else {
       show('Welcome back!', 'success');
-      const from = (location.state as any)?.from || '/';
+      const from = (location.state as { from?: string } | null)?.from || '/';
       navigate(from);
     }
     setLoading(false);

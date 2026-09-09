@@ -5,6 +5,7 @@ import { useCart } from '@/context/CartContext';
 import { useAuth } from '@/context/AuthContext';
 import { useToast } from '@/context/ToastContext';
 import { formatPrice, getEffectivePrice } from '@/utils/format';
+import type { Product } from '@/types';
 import EmptyState from '@/components/common/EmptyState';
 import LoadingSpinner from '@/components/common/LoadingSpinner';
 
@@ -17,7 +18,10 @@ export default function WishlistPage() {
   const handleMoveToCart = async (product: Product) => {
     if (!user) { show('Please sign in', 'info'); return; }
     try {
-      await addItem(product, 1, product.colors[0] ?? undefined, product.sizes[0] ?? undefined);
+      const firstColor = product.colors && product.colors.length > 0
+        ? (typeof product.colors[0] === 'string' ? product.colors[0] : product.colors[0].name)
+        : undefined;
+      await addItem(product, 1, firstColor, product.sizes[0] ?? undefined);
       await removeItem(product.id);
       show('Moved to cart', 'success');
     } catch { show('Could not move to cart', 'error'); }

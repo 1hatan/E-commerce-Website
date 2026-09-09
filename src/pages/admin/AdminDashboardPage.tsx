@@ -1,29 +1,30 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { IndianRupee, Package, Users, ShoppingBag, Clock, CheckCircle2, TrendingUp, ArrowRight } from 'lucide-react';
+import { DollarSign, Package, Users, ShoppingBag, Clock, CheckCircle2, ArrowRight } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
+import type { Order, Product } from '@/types';
 import { formatPrice, formatDate } from '@/utils/format';
 import AdminLayout from '@/components/layout/AdminLayout';
 import LoadingSpinner from '@/components/common/LoadingSpinner';
 
 export default function AdminDashboardPage() {
   const [stats, setStats] = useState({ revenue: 0, orders: 0, users: 0, products: 0, pending: 0, completed: 0 });
-  const [recentOrders, setRecentOrders] = useState<any[]>([]);
-  const [topProducts, setTopProducts] = useState<any[]>([]);
+  const [recentOrders, setRecentOrders] = useState<Order[]>([]);
+  const [topProducts, setTopProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     Promise.all([
-      supabase.from('orders').select('total, status'),
+      supabase.from('orders').select('total, status, payment_status'),
       supabase.from('profiles').select('id', { count: 'exact', head: true }),
-      supabase.from('products').select('id, name, price, review_count, rating', { count: 'exact', head: false }).limit(5),
+      supabase.from('products').select('*', { count: 'exact', head: false }).limit(5),
       supabase.from('orders').select('*, order_items(*)').order('created_at', { ascending: false }).limit(5),
     ]).then(([ordersRes, usersRes, productsRes, recentOrdersRes]) => {
-      const orders = ordersRes.data ?? [];
-      const revenue = orders.filter((o: any) => o.payment_status === 'paid').reduce((sum: number, o: any) => sum + Number(o.total), 0);
-      const pending = orders.filter((o: any) => o.status === 'pending' || o.status === 'confirmed' || o.status === 'processing').length;
-      const completed = orders.filter((o: any) => o.status === 'delivered').length;
+      const orders = (ordersRes.data as Order[]) ?? [];
+      const revenue = orders.filter((o) => o.payment_status === 'paid').reduce((sum, o) => sum + Number(o.total), 0);
+      const pending = orders.filter((o) => o.status === 'pending' || o.status === 'confirmed' || o.status === 'processing').length;
+      const completed = orders.filter((o) => o.status === 'delivered').length;
 
       setStats({
         revenue,
@@ -33,8 +34,8 @@ export default function AdminDashboardPage() {
         pending,
         completed,
       });
-      setRecentOrders(recentOrdersRes.data ?? []);
-      setTopProducts((productsRes.data ?? []).sort((a: any, b: any) => b.review_count - a.review_count));
+      setRecentOrders((recentOrdersRes.data as Order[]) ?? []);
+      setTopProducts(((productsRes.data as Product[]) ?? []).sort((a, b) => (b.review_count || 0) - (a.review_count || 0)));
       setLoading(false);
     });
   }, []);
@@ -42,7 +43,7 @@ export default function AdminDashboardPage() {
   if (loading) return <AdminLayout><LoadingSpinner label="Loading dashboard..." /></AdminLayout>;
 
   const cards = [
-    { label: 'Total Revenue', value: formatPrice(stats.revenue), icon: IndianRupee, color: 'bg-green-500' },
+    { label: 'Total Revenue', value: formatPrice(stats.revenue), icon: DollarSign, color: 'bg-emerald-600' },
     { label: 'Total Orders', value: stats.orders, icon: ShoppingBag, color: 'bg-blue-500' },
     { label: 'Total Users', value: stats.users, icon: Users, color: 'bg-purple-500' },
     { label: 'Total Products', value: stats.products, icon: Package, color: 'bg-orange-500' },
@@ -84,7 +85,7 @@ export default function AdminDashboardPage() {
             <p className="text-gray-400 text-center py-8">No orders yet</p>
           ) : (
             <div className="space-y-3">
-              {recentOrders.map((order: any) => (
+              {recentOrders.map((order) => (
                 <div key={order.id} className="flex items-center justify-between py-3 border-b border-gray-100 last:border-0">
                   <div>
                     <p className="font-semibold text-sm">{order.order_number}</p>
@@ -109,7 +110,7 @@ export default function AdminDashboardPage() {
             </Link>
           </div>
           <div className="space-y-3">
-            {topProducts.map((product: any, i: number) => (
+            {topProducts.map((product, i: number) => (
               <div key={product.id} className="flex items-center gap-3 py-2 border-b border-gray-100 last:border-0">
                 <div className="w-8 h-8 rounded-lg bg-gray-100 flex items-center justify-center text-sm font-bold text-gray-500">{i + 1}</div>
                 <div className="flex-1 min-w-0">

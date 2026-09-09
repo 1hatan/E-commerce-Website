@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Search, X, ShoppingBag, ChevronRight } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
@@ -24,16 +24,18 @@ export default function AdminOrdersPage() {
   const [statusFilter, setStatusFilter] = useState('');
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
 
-  const fetchOrders = async () => {
+  const fetchOrders = useCallback(async () => {
     let q = supabase.from('orders').select('*, order_items(*)').order('created_at', { ascending: false });
     if (statusFilter) q = q.eq('status', statusFilter);
     if (search) q = q.ilike('order_number', `%${search}%`);
     const { data } = await q;
     setOrders((data as Order[]) ?? []);
     setLoading(false);
-  };
+  }, [statusFilter, search]);
 
-  useEffect(() => { fetchOrders(); }, [statusFilter]);
+  useEffect(() => {
+    fetchOrders();
+  }, [fetchOrders]);
 
   const updateStatus = async (orderId: string, status: OrderStatus) => {
     const { error } = await supabase.from('orders').update({ status }).eq('id', orderId);
